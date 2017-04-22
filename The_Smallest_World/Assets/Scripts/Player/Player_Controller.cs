@@ -7,6 +7,7 @@ public class Player_Controller : MonoBehaviour
 {
     #region Variables_Private
     private Rigidbody2D playerBody;
+    private GameObject World;
     private Animator playerAnimator;
     [SerializeField]
     public float downwardForce = 0.0f;
@@ -16,6 +17,8 @@ public class Player_Controller : MonoBehaviour
     public float jumpForce = 0.0f;
     [HideInInspector]
     private bool canJump = true;
+    [SerializeField]
+    private const float planetGravity = 9.8f;
     #endregion
 
     // Use this for initialization
@@ -24,6 +27,7 @@ public class Player_Controller : MonoBehaviour
         #region Variable_Init
         playerBody = gameObject.GetComponent<Rigidbody2D>();
         playerAnimator = gameObject.GetComponent<Animator>();
+        World = GameObject.Find("SmallWorld");
         #endregion
 
         #region Input_Listeners
@@ -63,6 +67,11 @@ public class Player_Controller : MonoBehaviour
         {
             playerBody.velocity = new Vector2(playerBody.velocity.x, playerBody.velocity.y * downwardForce);
         }
+
+        //Update Custom player gravity
+        UpdatePlayerGravity(planetGravity, World.transform);
+        //Update players rotation relative to planet
+        UpdatePlayerYRotation(World.transform);
     }
 
     #region Ground_Check
@@ -75,13 +84,31 @@ public class Player_Controller : MonoBehaviour
         {
             if (col.gameObject.transform.position.y <= gameObject.transform.position.y)
             {
-
-                //Set jump state back to false2
+                //Set jump state back to false
                 playerAnimator.SetBool("Jump", false);
                 //if so change canJump back to true
                 canJump = !canJump;
             }
         }
+    }
+    #endregion
+
+    #region CustomPlayerGravity
+    void UpdatePlayerGravity(float gravityVal, Transform target)
+    {
+        //calculate gravity and transfer that from a vec3 to a vec2
+        Vector3 gravCalcResult = gravityVal * (target.position - gameObject.transform.position).normalized;
+        Vector2 playerVelToAdd = new Vector2(gravCalcResult.x, gravCalcResult.y);
+        Debug.Log(playerVelToAdd);
+        //Add velocity based on gravity. Velocity should never = 0.
+        
+        Debug.Log(playerVelToAdd);
+        gameObject.GetComponent<Rigidbody2D>().velocity += playerVelToAdd;
+    }
+
+    void UpdatePlayerYRotation(Transform target)
+    {
+        gameObject.transform.up = -(target.position - gameObject.transform.position);
     }
     #endregion
 
