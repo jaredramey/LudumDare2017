@@ -102,7 +102,7 @@ public class Player_Controller : MonoBehaviour
         }
         else
         {
-            gameObject.GetComponent<Rigidbody2D>().velocity += (playerVelToAdd / 2);
+            gameObject.GetComponent<Rigidbody2D>().velocity += (playerVelToAdd * .4f);
         }
     }
 
