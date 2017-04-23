@@ -19,6 +19,8 @@ public class Player_Controller : MonoBehaviour
     private bool canJump = true;
     [SerializeField]
     private const float planetGravity = 9.8f;
+    [SerializeField]
+    private Vector2 maxVelocity = new Vector2(100.0f, 100.0f);
     #endregion
 
     // Use this for initialization
@@ -36,6 +38,9 @@ public class Player_Controller : MonoBehaviour
         User_InputManager.Instance.OnJump.AddListener(Handle_OnJump);
         User_InputManager.Instance.OnUse.AddListener(Handle_OnUse);
         #endregion
+
+        //Turn off gravity for player
+        playerBody.gravityScale = 0f;
     }
 
     // Update is called once per frame
@@ -62,12 +67,6 @@ public class Player_Controller : MonoBehaviour
     }
     void FixedUpdate()
     {
-        //push the player down faster on decent
-        if (playerBody.velocity.y < 0)
-        {
-            playerBody.velocity = new Vector2(playerBody.velocity.x, playerBody.velocity.y * downwardForce);
-        }
-
         //Update Custom player gravity
         UpdatePlayerGravity(planetGravity, World.transform);
         //Update players rotation relative to planet
@@ -80,15 +79,12 @@ public class Player_Controller : MonoBehaviour
     void OnCollisionEnter2D(Collision2D col)
     {
         //Check to see if the player has hit the ground
-        if (!canJump && col.gameObject.layer == LayerMask.NameToLayer("Ground"))
+        if (!canJump && col.gameObject.layer == LayerMask.NameToLayer("Floor"))
         {
-            if (col.gameObject.transform.position.y <= gameObject.transform.position.y)
-            {
                 //Set jump state back to false
                 playerAnimator.SetBool("Jump", false);
                 //if so change canJump back to true
-                canJump = !canJump;
-            }
+                canJump = true;
         }
     }
     #endregion
@@ -99,11 +95,15 @@ public class Player_Controller : MonoBehaviour
         //calculate gravity and transfer that from a vec3 to a vec2
         Vector3 gravCalcResult = gravityVal * (target.position - gameObject.transform.position).normalized;
         Vector2 playerVelToAdd = new Vector2(gravCalcResult.x, gravCalcResult.y);
-        Debug.Log(playerVelToAdd);
         //Add velocity based on gravity. Velocity should never = 0.
-        
-        Debug.Log(playerVelToAdd);
-        gameObject.GetComponent<Rigidbody2D>().velocity += playerVelToAdd;
+        if (canJump)
+        {
+            gameObject.GetComponent<Rigidbody2D>().velocity += playerVelToAdd;
+        }
+        else
+        {
+            gameObject.GetComponent<Rigidbody2D>().velocity += (playerVelToAdd / 2);
+        }
     }
 
     void UpdatePlayerYRotation(Transform target)
@@ -116,16 +116,16 @@ public class Player_Controller : MonoBehaviour
     private void Handle_OnMoveForward()
     {
         //Add force to push the player right
-        playerBody.AddForce(((Vector2.left) * moveForce) * -User_InputManager.Instance.horizontal);
+        playerBody.AddForce(((gameObject.transform.right) * moveForce) * User_InputManager.Instance.horizontal);
         //Flip the player back to facing the right
         GetComponent<SpriteRenderer>().flipX = false;
     }
     private void Handle_OnMoveBackward()
     {
         //Add force to push the player left
-        playerBody.AddForce(((Vector2.left) * moveForce) * -User_InputManager.Instance.horizontal);
+        playerBody.AddForce(((gameObject.transform.right) * moveForce) * User_InputManager.Instance.horizontal);
         //Flip the player to face the left
-        GetComponent<SpriteRenderer>().flipX = true;
+       GetComponent<SpriteRenderer>().flipX = true;
     }
     private void Handle_OnJump()
     {
@@ -134,7 +134,7 @@ public class Player_Controller : MonoBehaviour
             //Set jump state to true
             playerAnimator.SetBool("Jump", true);
             //Apply force to player
-            playerBody.AddForce((Vector2.up) * jumpForce);
+            playerBody.AddForce((gameObject.transform.up) * jumpForce);
             //Make it so the player can't jump till he hit's the ground
             canJump = !canJump;
         }
