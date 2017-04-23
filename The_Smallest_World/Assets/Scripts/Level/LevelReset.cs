@@ -15,8 +15,8 @@ public class LevelReset : MonoBehaviour
     {
         if(col.gameObject.name == "Player")
         {
+            DeathCountController.Instance.OnRespawnPlayer.Invoke();
             col.transform.position = spawnPoint.transform.position;
-            Debug.Log("Player Respawn");
         }
     }
 }
