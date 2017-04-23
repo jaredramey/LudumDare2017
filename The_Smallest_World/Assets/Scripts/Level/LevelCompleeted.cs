@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class LevelCompleeted : MonoBehaviour
 {
     private static LevelCompleeted instance = null;
 
     public bool gameCompelete = false;
-    public GameObject Victory;
+    public GameObject Victory, Escape;
     public GameObject FinalTime, FinalDeath;
 
     public static LevelCompleeted Instance
@@ -25,6 +26,11 @@ public class LevelCompleeted : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        User_InputManager.Instance.OnEscape.AddListener(HandleOnEscape);
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -33,6 +39,7 @@ public class LevelCompleeted : MonoBehaviour
             Victory.gameObject.SetActive(true);
             FinalTime.gameObject.SetActive(true);
             FinalDeath.gameObject.SetActive(true);
+            Escape.gameObject.SetActive(true);
         }
     }
 
@@ -42,5 +49,10 @@ public class LevelCompleeted : MonoBehaviour
         {
             gameCompelete = true;
         }
+    }
+
+    void HandleOnEscape()
+    {
+        SceneManager.LoadScene("Menu_Main");
     }
 }
